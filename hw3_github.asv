@@ -97,16 +97,17 @@ y_fft = abs(fft(LPF));
 %fourier analaysis end
 %% result analysis 
 yn_coeff = conv(y.*y,ones(size(x)));
-yn¡@
+yn_coeff = yn_coeff(length(x):end);
 y_FIR =conv(y,LPF);
-figure
-plot(y_FIR)
+
 figure
 delay_pdf=xcorr(y_FIR,x);
 delay_pdf = delay_pdf((length(delay_pdf)+1)/2:end);
 new_taxis = 0:1/Fs:(length(delay_pdf)-1)/Fs;
 plot(new_taxis,delay_pdf)
-delay_time = t_axis(find(y==max(y)))
+
+delay_time = t_axis(find(delay_pdf==max(delay_pdf)))
+
 save('autocorr.mat','y');
 
 % delay_pdf=xcorr(y,x);
@@ -122,12 +123,14 @@ save('autocorr.mat','y');
 % the output length L of linear convolution will be equal to M+N-1, where M is the length of y and N is the length of x. 
 % !!! You have to take care the extra N-1 points in the filter output in order to correctly estimate the echo time.
 y_Matched = conv(y, match_filter ); 
-y_Matched=y_Matched(length(x)-1:end) ; %%remove Trasient part
+y_Matched=y_Matched(length(match_filter):end) ; %%remove Trasient part
+y_Matched = y_Matched./((yn_coeff*xn_coef).^(1/2)); %% normalized the mathed signal
 figure
-plot(y_Matched/n_coef);
+plot(y_Matched);
 title('Match Filter')
 xlabel('Time (sec)');
-ylabel('auto-corr')
+ylabel('amplitude')
+delay_time = t_axis(find(y_Matched==max(y_Matched)))
 % (c)
 % Check if waveform distortion occurs after filtering, and elaborate the reason
 
