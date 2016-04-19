@@ -78,6 +78,7 @@ delay_pdf = delay_pdf((length(delay_pdf)+1)/2:end);
 new_taxis = 0:1/Fs:(length(delay_pdf)-1)/Fs;
 plot(new_taxis,delay_pdf)
 delay_time = t_axis(find(y==max(y)))
+save('autocorr.mat','y');
 % (b)
 % matched filtering
 % the output length L of linear convolution will be equal to M+N-1, where M is the length of y and N is the length of x. 
