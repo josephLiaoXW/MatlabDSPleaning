@@ -46,15 +46,11 @@ xn_coef = x*x.';
 % the output length L of linear convolution will be equal to M+N-1, where M is the length of y and N is the length of h. 
 % !!! You have to take care the extra N-1 points in the filter output in order to correctly estimate the echo time.
 %fourier analaysis
-cutoff_fre = 10;
 sample_num = length(y);
 dur= sample_num/Fs;
 t_axis=0:1/Fs:(length(y)-1)/Fs;
 f_axis = 0:1/dur:(length(y)-1)/dur;
 f_axis = f_axis-f_axis(ceil(length(f_axis)/2));
-FIR = zeros(size(f_axis));
-zerof_pos= ceil(length(f_axis)/2);
-FIR(zerof_pos-cutoff_fre*dur:zerof_pos+cutoff_fre*dur)=1;
 %fourier analysis for y
 y_fft = fftshift(fft(y));
 
@@ -80,6 +76,53 @@ yn_coeff = yn_coeff(length(x):end);
 
 
 
+cutoff = 10;
+FIR=[zeros(1,(length(y)-cutoff)/2),ones(1,cutoff),zeros(1,(length(y)-cutoff)/2)];
+
+% k=conv(x,FIR);
+% k=fftshift(fft(k));
+% figure
+% plot(abs(k));
+
+k=fftshift(fft(FIR));
+figure
+subplot(3,1,1)
+plot(f_axis,abs(k));
+y_FIR = conv(FIR,y);
+y_FIR = y_FIR((length(FIR)-cutoff)/2:(length(FIR)-cutoff)/2+length(y)-1);
+subplot(3,1,2)
+plot(t_axis,y_FIR)
+k=fftshift(fft(y_FIR));
+subplot(3,1,3)
+plot(f_axis,abs(k));
+%Assume noise will not distortion signal too much: the max output is the
+%same position as the max amplitude of delay x
+%calculate the delay_time
+[a,vv] = max(y_FIR);
+delay_time_FIR = (vv-ceil(length(x)/2))./Fs
+%SNR for (a)
+ideal_y = zeros(size(y));
+ideal_y(delay_time_FIR*Fs:delay_time_FIR*Fs+length(x)-1) = x;
+noise = y_FIR-ideal_y;
+noise2 = y-ideal_y;
+ps_ideal = ideal_y.*ideal_y;
+ideal_FIR = conv(ideal_y, FIR ); 
+ideal_FIR=ideal_FIR((length(FIR)-cutoff)/2:(length(FIR)-cutoff)/2+length(ideal_y)-1) ;
+ps_ideal_FIR = ideal_FIR.*ideal_FIR;
+psn = noise.*noise;
+psn2 = noise2 .*noise2 ;
+SNR_org= ps_ideal./psn2;
+SNR_FIR= ps_ideal_FIR./psn ;
+%show the result
+figure
+s(1) = subplot(2,1,1);
+plot(t_axis,SNR_org)
+s(2) = subplot(2,1,2);
+plot(t_axis,SNR_FIR)
+SNR_org_all= sum(ps_ideal)./sum(psn2)
+SNR_all = sum(ps_ideal_match)./sum(psn)
+title(s(1),['original SNR¡G',num2str(SNR_org_all)])
+title(s(2),['filtered SNR¡G',num2str(SNR_all)])
 % figure
 % delay_pdf=xcorr(y_FIR,x);
 % delay_pdf = delay_pdf((length(delay_pdf)+1)/2:end);
@@ -102,6 +145,8 @@ yn_coeff = yn_coeff(length(x):end);
 % matched filtering
 % the output length L of linear convolution will be equal to M+N-1, where M is the length of y and N is the length of x. 
 % !!! You have to take care the extra N-1 points in the filter output in order to correctly estimate the echo time.
+
+
 y_Matched = conv(y, match_filter ); 
 y_Matched=y_Matched(length(match_filter):end) ; %%remove Trasient part
 y_Matched = y_Matched./((yn_coeff*xn_coef).^(1/2)); %% normalized the mathed signal
@@ -152,11 +197,12 @@ s(1) = subplot(2,1,1);
 plot(t_axis,SNR_org)
 s(2) = subplot(2,1,2);
 plot(t_axis,SNR)
-title(s(1),'original SNR')
-title(s(2),'filtered SNR')
+SNR_org_all= sum(ps_ideal)./sum(psn2)
+SNR_all = sum(ps_ideal_match)./sum(psn)
+title(s(1),['original SNR¡G',num2str(SNR_org_all)])
+title(s(2),['filtered SNR¡G',num2str(SNR_all)])
 
-SNR_org= sum(ps_ideal)./sum(psn2)
-SNR = sum(ps_ideal_match)./sum(psn) 
+ 
 
 ideal_fft = fftshift(fft(ideal_y));
 figure
