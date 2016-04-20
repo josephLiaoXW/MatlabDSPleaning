@@ -77,7 +77,7 @@ yn_coeff = yn_coeff(length(x):end);
 
 
 cutoff = 10;
-FIR=[zeros(1,(length(y)-cutoff)/2),ones(1,cutoff),zeros(1,(length(y)-cutoff)/2)];
+FIR=[zeros(1,(length(y)-cutoff)/2),ones(1,cutoff),zeros(1,(length(y)-cutoff)/2)]/cutoff;
 
 % k=conv(x,FIR);
 % k=fftshift(fft(k));
@@ -120,7 +120,7 @@ plot(t_axis,SNR_org)
 s(2) = subplot(2,1,2);
 plot(t_axis,SNR_FIR)
 SNR_org_all= sum(ps_ideal)./sum(psn2)
-SNR_all = sum(ps_ideal_match)./sum(psn)
+SNR_all = sum(ps_ideal_FIR)./sum(psn)
 title(s(1),['original SNR¡G',num2str(SNR_org_all)])
 title(s(2),['filtered SNR¡G',num2str(SNR_all)])
 % figure
