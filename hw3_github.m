@@ -1,3 +1,4 @@
+%EE 3660 ¹ù¾ÇÞm u102061222 HW 3 04/20/2016
 % HW3 Sample codes 
 % Pseudo-Parking Sonar
 %
@@ -28,12 +29,15 @@ subplot(2,1,1)
 plot(xf_axis,abs(x_fft)/length(x));
 title('Weighted linear FM Fourier analysis')
 xlabel('Frequency (Hz)');
-ylabel('amplitude')
+ylabel('magnitude')
 subplot(2,1,2)
-[p_x,w] = phasez(x,length(x));
-plot((w-max(w)/2)*100/max(w),fftshift(p_x));
+plot(xf_axis,unwrap(angle(x_fft)));
 xlabel('angle');
 ylabel('unwrapped angle')
+
+figure
+plot(xf_axis,unwrap(angle(x_fft)));
+
 load SonarSignalWithWhiteGausNoise
 match_filter = fliplr(x);
 xn_coef = x*x.';
@@ -42,7 +46,7 @@ xn_coef = x*x.';
 % (a)
 % remove the noise and increase the SNR by low pass filtering or band pass filtering (depends on the signal frequency band)
 % design the proper filter based on the moving average filter
-;% FIR filter
+% FIR filter
 % the output length L of linear convolution will be equal to M+N-1, where M is the length of y and N is the length of h. 
 % !!! You have to take care the extra N-1 points in the filter output in order to correctly estimate the echo time.
 %fourier analaysis
@@ -61,10 +65,10 @@ title('Fourier analysis y')
 xlabel('frquency (Hz)');
 ylabel('mag')
 subplot(2,1,2)
-[p_y,w] = phasez(y,length(y));
-plot((w-max(w)/2)*100/max(w),fftshift(p_y));
+plot(f_axis,unwrap(angle(y_fft)));
 xlabel('angle');
-ylabel('amplitude')
+ylabel('unwrapped angle')
+
 
 
 f_axis = 0:1/dur:(length(y)-1)/dur;
@@ -79,23 +83,17 @@ yn_coeff = yn_coeff(length(x):end);
 cutoff = 8;
 FIR=[zeros(1,(length(y)-cutoff)/2),ones(1,cutoff),zeros(1,(length(y)-cutoff)/2)]/cutoff;
 
-% k=conv(x,FIR);
-% k=fftshift(fft(k));
-% figure
-% plot(abs(k));
-figure
-[p_FIR,w] = phasez(FIR,length(FIR));
-plot((w-max(w)/2)*100/max(w),fftshift(p_FIR));
+
 y_FIR = conv(FIR,y);
 y_FIR = y_FIR((length(FIR)-cutoff)/2:(length(FIR)-cutoff)/2+length(y)-1);
 k=fftshift(fft(FIR));
 figure
-
+plot(f_axis,unwrap(angle(k)));
+figure
 a(1)=subplot(4,1,1);
 plot(f_axis,abs(k));
 a(4)=subplot(4,1,2);
-[p_FIR,w] = phasez(FIR,length(FIR));
-plot((w-max(w)/2)*100/max(w),fftshift(p_FIR));
+plot(f_axis,unwrap(angle(k)));
 y_FIR = conv(FIR,y);
 y_FIR = y_FIR((length(FIR)-cutoff)/2:(length(FIR)-cutoff)/2+length(y)-1);
 a(2)=subplot(4,1,3);
@@ -111,7 +109,7 @@ ylabel(a(1),'mag')
 xlabel(a(4),'frquency (Hz)');
 ylabel(a(4),'unwrapped angle')
 xlabel(a(2),'time (t)');
-ylabel(a(2),'mag')
+ylabel(a(2),'amplitude')
 xlabel(a(3),'frquency (Hz)');
 ylabel(a(3),'mag')
 %Assume noise will not distortion signal too much: the max output is the
@@ -146,24 +144,6 @@ ylabel(s(1),'s(t) energy / n(t) energy')
 ylabel(s(2),'s(t) energy / n(t) energy')
 xlabel(s(1),'time (s)')
 xlabel(s(2),'time (s)')
-% figure
-% delay_pdf=xcorr(y_FIR,x);
-% delay_pdf = delay_pdf((length(delay_pdf)+1)/2:end);
-% new_taxis = 0:1/Fs:(length(delay_pdf)-1)/Fs;
-% plot(new_taxis,delay_pdf)
-% 
-% delay_time = t_axis(find(delay_pdf==max(delay_pdf)))
-% 
-% save('autocorr.mat','y');
-
-% delay_pdf=xcorr(y,x);
-% delay_pdf = delay_pdf((length(delay_pdf)+1)/2:end);
-% figure
-% plot(t_axis,delay_pdf);
-% title('acorr Filter')
-% xlabel('Time (sec)');
-% ylabel('auto-corr')
-
 % (b)
 % matched filtering
 % the output length L of linear convolution will be equal to M+N-1, where M is the length of y and N is the length of x. 
@@ -188,10 +168,10 @@ subplot(2,1,1)
 plot(f_axis,abs(matched_fft));
 title('Match Filter Fourier analysis')
 xlabel('Frequency (Hz)');
-ylabel('amplitude')
+ylabel('mag')
 subplot(2,1,2)
 [p_matched,w] = phasez(y_Matched,length(y_Matched));
-plot((w-max(w)/2)*100/max(w),fftshift(p_matched));
+plot(f_axis,unwrap(angle(matched_fft)));
 xlabel('angle');
 ylabel('unwrapped angle')
 
@@ -232,16 +212,95 @@ ideal_fft = fftshift(fft(ideal_y));
 figure
 subplot(2,1,1)
 plot(f_axis,abs(ideal_fft));
-title('Match Filter Fourier analysis')
+title('Ideal X delay without noise')
 xlabel('Frequency (Hz)');
-ylabel('amplitude')
+ylabel('Magnitude')
 subplot(2,1,2)
-[p_ideal,w] = phasez(ideal_y,length(ideal_y));
-plot((w-max(w)/2)*100/max(w),fftshift(p_ideal));
+plot(f_axis,unwrap(angle(ideal_fft)));
 xlabel('angle');
 ylabel('unwrapped angle')
-% (c)
-% Check if waveform distortion occurs after filtering, and elaborate the reason
+%(c)
+%elaborate the distortion of x through matched fiter
+figure
+subplot(3,1,1)
+plot(t_axis,ideal_match);
+title('distortion of match filter')
+xlabel('time (s)');
+ylabel('amplitude')
+subplot(3,1,2)
+plot(f_axis,abs(fftshift(fft(ideal_match))));
+xlabel('Frequency (Hz)');
+ylabel('magnitude')
+subplot(3,1,3)
+[p_ideal,w] = phasez(ideal_y,length(ideal_match));
+plot(f_axis,unwrap(angle(fftshift(fft(ideal_match)))));
+xlabel('angle');
+ylabel('unwrapped angle')
+%(d)
+k=10;
+y_intmatch = interp(y_Matched,k);
+t_axis=0:1/Fs/k:(length(y_intmatch)-1)/Fs/k;
+delay_time = t_axis(y_intmatch==max(y_intmatch))
+k=10;
+y_interpo = interp(y,k);
+x_interpo = interp(x,k);
+Fs=Fs*k;
+t_axis=0:1/Fs:(length(y_interpo)-1)/Fs;
 
-%(d) 
- y_fft
+match_filter = fliplr(x_interpo);
+xn_coef = x_interpo*x_interpo.';
+yn_coeff = conv(y_interpo.*y_interpo,ones(size(x_interpo)));
+yn_coeff = yn_coeff(length(x_interpo):end);
+
+y_iMatched = conv(y_interpo, match_filter ); 
+y_iMatched=y_iMatched(length(match_filter):end) ; %%remove Trasient part
+y_iMatched = y_iMatched./((yn_coeff*xn_coef).^(1/2)); %% normalized the mathed signal
+figure
+plot(t_axis,y_iMatched);
+title('Match Filter')
+xlabel('Time (sec)');
+ylabel('amplitude')
+[a,vv] = max(y_iMatched);
+delay_time = t_axis(vv)
+normalized_time = (vv-1)/k
+%(d)(e)
+%section for estimating tolerance
+Fs = 100; % Sampling rate in Hz
+tau = 10; % Time duration of the linear FM signal in sec
+B = 10; % in Hz
+beta = B/tau;
+A = 1;
+t = 0:1/Fs:tau; % time axis
+x = A*sin(pi*beta*t.^2); % the linear FM signal
+x = hamming(length(x)).'.*x; % hamming windowed linear FM signal
+f_axis = 0:1/tau:(length(x)-1)/tau;
+xf_axis = f_axis-f_axis(ceil(length(f_axis)/2));
+y_d = downsample(y,100/Fs);
+match_filter = fliplr(x);
+xn_coef = x*x.';
+yn_coeff = conv(y_d.*y_d,ones(size(x)));
+yn_coeff = yn_coeff(length(x):end);
+
+
+y_iMatched = conv(y_d, match_filter ); 
+y_iMatched=y_iMatched(length(match_filter):end) ; %%remove Trasient part
+y_iMatched = y_iMatched./((yn_coeff*xn_coef).^(1/2)); %% normalized the mathed signal
+t_axis=0:1/Fs:(length(y_d)-1)/Fs;
+k=5;
+y_intmatch = interp(y_iMatched,k,2,12/50);
+t_axis=0:1/Fs/k:(length(y_intmatch)-1)/Fs/k;
+[a,vv] = max(y_intmatch);
+delay_time = t_axis(vv)
+normalized_time = (vv)/(Fs*k/100)
+
+ideal_y = zeros(size(y_d));
+ideal_y(round(delay_time*Fs):round(delay_time*Fs)+length(x)-1) = x;
+y_iMatched = [y_iMatched,zeros([1 length(ideal_y)-length(y_iMatched)])];
+noise = y_iMatched-ideal_y;
+ps_ideal = ideal_y.*ideal_y;
+ideal_match = conv(ideal_y, match_filter ); 
+ideal_match=ideal_match(length(match_filter):end) ;
+ps_ideal_match = ideal_match.*ideal_match;
+psn = noise.*noise;
+SNR = ps_ideal_match./psn;
+SNR_all = sum(ps_ideal_match)./sum(psn)
